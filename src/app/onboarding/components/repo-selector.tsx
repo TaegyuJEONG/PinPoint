@@ -7,9 +7,11 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 
 import { signInWithGithubPrivate } from '@/app/auth/actions'
+import { Globe } from 'lucide-react'
 
-export default function RepoSelector({ repos, onSelect }: { repos: any[], onSelect: (repo: any) => void }) {
+export default function RepoSelector({ repos, onSelect }: { repos: any[], onSelect: (repo: any, customUrl?: string) => void }) {
   const [searchTerm, setSearchTerm] = useState('')
+  const [customUrl, setCustomUrl] = useState('')
   const [selecting, setSelecting] = useState<number | null>(null)
 
   const filteredRepos = repos.filter(repo => 
@@ -18,7 +20,7 @@ export default function RepoSelector({ repos, onSelect }: { repos: any[], onSele
 
   function handleSelect(repo: any) {
     setSelecting(repo.id)
-    onSelect(repo)
+    onSelect(repo, customUrl)
   }
 
   const hasPrivateRepos = repos.some(repo => repo.private)
@@ -30,14 +32,35 @@ export default function RepoSelector({ repos, onSelect }: { repos: any[], onSele
         <p className="text-muted-foreground text-sm">Choose the codebase you want to generate documentation and outreach for.</p>
       </div>
 
-      <div className="relative max-w-md mx-auto mb-6">
-        <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-        <Input 
-          placeholder="Search repositories..." 
-          className="pl-9"
-          value={searchTerm}
-          onChange={e => setSearchTerm(e.target.value)}
-        />
+      <div className="max-w-2xl mx-auto space-y-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+            <Input 
+              placeholder="Search repositories..." 
+              className="pl-9 h-11 bg-white border-slate-200 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm rounded-xl" 
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <div className="relative">
+            <Globe className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+            <Input 
+              placeholder="Product URL (e.g. https://genkle.ai)" 
+              className="pl-9 h-11 bg-white border-slate-200 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm rounded-xl"
+              value={customUrl}
+              onChange={e => setCustomUrl(e.target.value)}
+            />
+            <div className="absolute right-3 top-3">
+              <div className="group relative">
+                <div className="text-[10px] text-slate-400 cursor-help border border-slate-200 rounded px-1.5 py-0.5 bg-slate-50">?</div>
+                <div className="absolute bottom-full right-0 mb-2 w-48 p-2 bg-slate-800 text-white text-[10px] rounded shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                  AI가 실제 홈페이지를 분석하여 더 정확한 마케팅 문구를 생성합니다. (깃허브에 등록된 주소보다 우선 연동됩니다)
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[350px] overflow-y-auto p-1">

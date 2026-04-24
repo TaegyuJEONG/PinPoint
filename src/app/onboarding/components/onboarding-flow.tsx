@@ -9,19 +9,23 @@ import { Loader2 } from 'lucide-react'
 type Step = 'repo' | 'loading' | 'qa' | 'done'
 
 export default function OnboardingFlow({ initialProject, user, githubRepos = [] }: { initialProject: any, user: any, githubRepos?: any[] }) {
-  const [step, setStep] = useState<Step>(
-    initialProject?.id ? 'qa' : 'repo'
-  )
+  const [step, setStep] = useState<Step>('repo')
   const [geoData, setGeoData] = useState<any>(initialProject?.initial_geo_draft || null)
   const [error, setError] = useState<string | null>(null)
 
-  async function handleRepoSelect(repo: any) {
+  async function handleRepoSelect(repo: any, customHomepage?: string) {
     setStep('loading')
     setError(null)
     try {
       const res = await fetch('/api/generate-initial-geo', {
         method: 'POST',
-        body: JSON.stringify({ repoUrl: repo.html_url, repoName: repo.full_name, defaultBranch: repo.default_branch, description: repo.description, homepage: repo.homepage })
+        body: JSON.stringify({ 
+          repoUrl: repo.html_url, 
+          repoName: repo.full_name, 
+          defaultBranch: repo.default_branch, 
+          description: repo.description, 
+          homepage: customHomepage || repo.homepage 
+        })
       })
       const data = await res.json()
       

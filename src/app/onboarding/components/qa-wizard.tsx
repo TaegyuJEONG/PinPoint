@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Plus, Trash2, X } from 'lucide-react'
+import { Plus, Trash2, X, Loader2 } from 'lucide-react'
 
 const STEPS = [
   { id: 1, title: 'Origin Story', question: "What's your authentic origin story?", desc: "Where did the idea come from? Authentic stories convert better." },
@@ -11,7 +11,8 @@ const STEPS = [
   { id: 3, title: 'Problems & Solutions', question: 'What specific problems do you solve?', desc: "Define the pain points and your solutions." },
   { id: 4, title: 'Common Q&A', question: 'What questions do customers frequently ask?', desc: "Address objections before they happen." },
   { id: 5, title: 'Key Use Cases', question: 'What are the main use cases?', desc: "How are people actually using this?" },
-  { id: 6, title: 'Competitor Analysis', question: 'How do you stack up against alternatives?', desc: "Define your clear features and pricing advantages." }
+  { id: 6, title: 'Target Search Prompts', question: 'What do customers search for?', desc: "These are the exact prompts your prospects type into ChatGPT or Perplexity." },
+  { id: 7, title: 'Competitor Matrix', question: 'How do you stack up against alternatives?', desc: "We scanned ChatGPT with your prompts. Fill in your advantages against the AI's top recommendations." }
 ]
 
 export default function QaWizard({ initialGeo, onComplete }: { initialGeo: any, onComplete: (data: any) => void }) {
@@ -24,6 +25,7 @@ export default function QaWizard({ initialGeo, onComplete }: { initialGeo: any, 
   const [problemSolutions, setProblemSolutions] = useState<{problem: string, solution: string}[]>(initialGeo?.problemSolutions || [])
   const [faqs, setFaqs] = useState<{question: string, answer: string}[]>(initialGeo?.faqs || [])
   const [useCases, setUseCases] = useState<string[]>(initialGeo?.useCases || [])
+  const [targetPrompts, setTargetPrompts] = useState<string[]>([])
   const [competitors, setCompetitors] = useState<string[]>(initialGeo?.competitors || ['Competitor A'])
 
   const [matrixFactors, setMatrixFactors] = useState<{feature: string, yours: string, comps: Record<string, string>}[]>([
@@ -31,9 +33,48 @@ export default function QaWizard({ initialGeo, onComplete }: { initialGeo: any, 
     { feature: 'Core Differentiator', yours: '', comps: {} }
   ])
 
-  function handleNext() {
-    if (currentStepId < 6) setCurrentStepId(currentStepId + 1)
-    else onComplete({ originStory, idealCustomers, problemSolutions, faqs, useCases, competitors, matrixFactors })
+  const [isGeneratingPrompts, setIsGeneratingPrompts] = useState(false)
+  const [isSynthesizing, setIsSynthesizing] = useState(false)
+  const [hasSynthesized, setHasSynthesized] = useState(false)
+
+  async function handleNext() {
+    if (currentStepId === 5) {
+      if (targetPrompts.length === 0) {
+        setIsGeneratingPrompts(true)
+        try {
+          const res = await fetch('/api/generate-prompts', {
+            method: 'POST',
+            body: JSON.stringify({ initialGeo, originStory, idealCustomers, problemSolutions, faqs, useCases })
+          })
+          const data = await res.json()
+          if (data.prompts) setTargetPrompts(data.prompts)
+        } catch(e) { console.error(e) }
+        setIsGeneratingPrompts(false)
+      }
+      setCurrentStepId(6)
+    } else if (currentStepId === 6) {
+      if (!hasSynthesized) {
+        setIsSynthesizing(true)
+        try {
+          const res = await fetch('/api/scan-and-synthesize-competitors', {
+            method: 'POST',
+            body: JSON.stringify({ prompts: targetPrompts })
+          })
+          const data = await res.json()
+          if (data.competitors && data.factors) {
+            setCompetitors(data.competitors)
+            setMatrixFactors(data.factors)
+            setHasSynthesized(true)
+          }
+        } catch(e) { console.error(e) }
+        setIsSynthesizing(false)
+      }
+      setCurrentStepId(7)
+    } else if (currentStepId < 7) {
+      setCurrentStepId(currentStepId + 1)
+    } else {
+      onComplete({ originStory, idealCustomers, problemSolutions, faqs, useCases, targetPrompts, competitors, matrixFactors })
+    }
   }
 
   function handleBack() {
@@ -44,13 +85,13 @@ export default function QaWizard({ initialGeo, onComplete }: { initialGeo: any, 
     <div className="space-y-6 mx-auto py-2">
       <div className="mb-4 space-y-1">
         <div className="flex items-center justify-between">
-          <span className="text-sm font-medium text-slate-500">Step {currentStepId} of 6</span>
+          <span className="text-sm font-medium text-slate-500">Step {currentStepId} of 7</span>
           <span className="text-sm font-medium text-indigo-600">{currentStep.title}</span>
         </div>
         <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
           <div 
              className="h-full bg-indigo-600 transition-all duration-300 ease-in-out" 
-             style={{ width: `${(currentStepId / 6) * 100}%` }}
+             style={{ width: `${(currentStepId / 7) * 100}%` }}
           />
         </div>
       </div>
@@ -61,28 +102,47 @@ export default function QaWizard({ initialGeo, onComplete }: { initialGeo: any, 
       </div>
 
       <div className="min-h-[300px] pb-4">
-        {currentStepId === 1 && (
-          <textarea
-            className="w-full h-48 p-4 rounded-md border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-600 bg-slate-50 resize-none"
-            placeholder="I was building a side project and realized I had no way to find users..."
-            value={originStory}
-            onChange={e => setOriginStory(e.target.value)}
-          />
+        {isGeneratingPrompts && currentStepId === 6 && (
+          <div className="flex flex-col items-center justify-center h-48 space-y-4">
+            <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+            <p className="text-slate-500">Generating target prompts...</p>
+          </div>
         )}
         
-        {currentStepId === 2 && <ListEditor items={idealCustomers} setItems={setIdealCustomers} placeholder="E.g. Solo founders" />}
-        {currentStepId === 3 && <PairEditor items={problemSolutions} setItems={setProblemSolutions} k1="problem" k2="solution" pl1="The Problem..." pl2="How we solve it..." />}
-        {currentStepId === 4 && <PairEditor items={faqs} setItems={setFaqs} k1="question" k2="answer" pl1="Question..." pl2="Answer..." />}
-        {currentStepId === 5 && <ListEditor items={useCases} setItems={setUseCases} placeholder="E.g. Automating outreach" />}
-        {currentStepId === 6 && <CompetitorMatrix competitors={competitors} factors={matrixFactors} setFactors={setMatrixFactors} />}
+        {isSynthesizing && currentStepId === 7 && (
+          <div className="flex flex-col items-center justify-center h-48 space-y-4">
+            <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+            <p className="text-slate-500">Scanning ChatGPT responses & Synthesizing competitor matrix...</p>
+          </div>
+        )}
+
+        {!isGeneratingPrompts && !isSynthesizing && (
+          <>
+            {currentStepId === 1 && (
+              <textarea
+                className="w-full h-48 p-4 rounded-md border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-600 bg-slate-50 resize-none"
+                placeholder="I was building a side project and realized I had no way to find users..."
+                value={originStory}
+                onChange={e => setOriginStory(e.target.value)}
+              />
+            )}
+            
+            {currentStepId === 2 && <ListEditor items={idealCustomers} setItems={setIdealCustomers} placeholder="E.g. Solo founders" />}
+            {currentStepId === 3 && <PairEditor items={problemSolutions} setItems={setProblemSolutions} k1="problem" k2="solution" pl1="The Problem..." pl2="How we solve it..." />}
+            {currentStepId === 4 && <PairEditor items={faqs} setItems={setFaqs} k1="question" k2="answer" pl1="Question..." pl2="Answer..." />}
+            {currentStepId === 5 && <ListEditor items={useCases} setItems={setUseCases} placeholder="E.g. Automating outreach" />}
+            {currentStepId === 6 && <ListEditor items={targetPrompts} setItems={setTargetPrompts} placeholder="E.g. Best AI voice diary app" />}
+            {currentStepId === 7 && <CompetitorMatrix competitors={competitors} factors={matrixFactors} setFactors={setMatrixFactors} />}
+          </>
+        )}
       </div>
 
       <div className="flex justify-between pt-6 border-t">
-        <Button variant="ghost" onClick={handleBack} disabled={currentStepId === 1}>
+        <Button variant="ghost" onClick={handleBack} disabled={currentStepId === 1 || isGeneratingPrompts || isSynthesizing}>
           Back
         </Button>
-        <Button onClick={handleNext} className="bg-indigo-600 hover:bg-indigo-700">
-          {currentStepId === 6 ? 'Generate GEO Files' : 'Next Step'}
+        <Button onClick={handleNext} className="bg-indigo-600 hover:bg-indigo-700" disabled={isGeneratingPrompts || isSynthesizing}>
+          {currentStepId === 7 ? 'Generate GEO Files' : 'Next Step'}
         </Button>
       </div>
     </div>

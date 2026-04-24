@@ -23,31 +23,52 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'GitHub token missing' }, { status: 400 })
     }
 
-    // 2. Fetch README from GitHub
-    let readmeContent = ''
-    try {
-      const readmeRes = await fetch(`https://api.github.com/repos/${repoName}/readme`, {
-        headers: {
-          Authorization: `Bearer ${ghToken}`,
-          Accept: 'application/vnd.github.v3.raw',
+    // 2. Fetch Source Content (Prioritize Homepage Scrape -> GitHub README -> Description)
+    let sourceContent = ''
+    let sourceOrigin = ''
+
+    // Attempt 1: Scrape homepage via Jina Reader if provided
+    if (homepage) {
+      try {
+        console.log('Scraping homepage with Jina Reader:', homepage)
+        const jinaRes = await fetch(`https://r.jina.ai/${homepage}`)
+        if (jinaRes.ok) {
+          sourceContent = await jinaRes.text()
+          sourceOrigin = 'Live Website'
         }
-      })
-      if (readmeRes.ok) {
-        readmeContent = await readmeRes.text()
-      } else {
-        // Fallback to description if README fails (e.g., empty repo)
-        readmeContent = description || repoName
+      } catch (e) {
+        console.warn('Jina Reader failed, falling back to README', e)
       }
-    } catch (e) {
-      readmeContent = description || repoName
+    }
+
+    // Attempt 2: Fallback to GitHub README if sourceContent is still empty
+    if (!sourceContent) {
+      try {
+        const readmeRes = await fetch(`https://api.github.com/repos/${repoName}/readme`, {
+          headers: {
+            Authorization: `Bearer ${ghToken}`,
+            Accept: 'application/vnd.github.v3.raw',
+          }
+        })
+        if (readmeRes.ok) {
+          sourceContent = await readmeRes.text()
+          sourceOrigin = 'GitHub README'
+        } else {
+          sourceContent = description || repoName
+          sourceOrigin = 'Repository Description'
+        }
+      } catch (e) {
+        sourceContent = description || repoName
+        sourceOrigin = 'Repository Description'
+      }
     }
 
     // 3. Generate Initial GEO using OpenAI
-    console.log('Generating initial GEO for:', repoName)
+    console.log(`Generating initial GEO for: ${repoName} (Source: ${sourceOrigin})`)
     const { object: initialGeo } = await generateObject({
       model: openai('gpt-4o-mini'),
-      system: 'You are an expert product marketer. Based on the provided GitHub README and description, extract key details to help build a marketing profile. Be concise and accurate.',
-      prompt: `Analyze this repository: ${repoName}\n\nREADME content:\n${readmeContent.substring(0, 8000)}`,
+      system: 'You are an expert product marketer. Based on the provided product information (extracted from their website or GitHub README), extract key details to help build a marketing profile. Be concise and accurate.',
+      prompt: `Analyze this product: ${repoName}\n\nProduct Information (${sourceOrigin}):\n${sourceContent.substring(0, 20000)}`,
       schema: z.object({
         idealCustomers: z.array(z.string()).describe("List of 2-4 target audience profiles"),
         problemSolutions: z.array(z.object({
@@ -63,19 +84,49 @@ export async function POST(request: Request) {
       })
     })
 
-    // 4. Create the Project in DB
-    console.log('Inserting project into DB...')
-    const { data: project, error } = await supabase
+    // 4. Create or Update the Project in DB
+    console.log('Saving project to DB...')
+    
+    // Check if project exists to avoid duplicates (since we don't have unique index yet)
+    const { data: existingProject } = await supabase
       .from('projects')
-      .insert({
-        user_id: user.id,
-        name: repoName.split('/')[1] || repoName,
-        github_repo_url: repoUrl,
-        product_urls: { website: homepage || '', github: repoUrl },
-        initial_geo_draft: initialGeo
-      })
-      .select()
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('github_repo_url', repoUrl)
       .single()
+
+    let project, error;
+
+    if (existingProject) {
+      console.log('Updating existing project:', existingProject.id)
+      const { data, error: updateError } = await supabase
+        .from('projects')
+        .update({
+          name: repoName.split('/')[1] || repoName,
+          product_urls: { website: homepage || '', github: repoUrl },
+          initial_geo_draft: initialGeo
+        })
+        .eq('id', existingProject.id)
+        .select()
+        .single()
+      project = data
+      error = updateError
+    } else {
+      console.log('Creating new project...')
+      const { data, error: insertError } = await supabase
+        .from('projects')
+        .insert({
+          user_id: user.id,
+          name: repoName.split('/')[1] || repoName,
+          github_repo_url: repoUrl,
+          product_urls: { website: homepage || '', github: repoUrl },
+          initial_geo_draft: initialGeo
+        })
+        .select()
+        .single()
+      project = data
+      error = insertError
+    }
 
     if (error) {
       console.error('Failed to create project in DB:', error)
