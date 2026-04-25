@@ -11,6 +11,7 @@ type Step = 'repo' | 'loading' | 'qa' | 'done'
 export default function OnboardingFlow({ initialProject, user, githubRepos = [] }: { initialProject: any, user: any, githubRepos?: any[] }) {
   const [step, setStep] = useState<Step>('repo')
   const [geoData, setGeoData] = useState<any>(initialProject?.initial_geo_draft || null)
+  const [projectName, setProjectName] = useState<string>(initialProject?.name || '')
   const [error, setError] = useState<string | null>(null)
 
   async function handleRepoSelect(repo: any, customHomepage?: string) {
@@ -31,6 +32,7 @@ export default function OnboardingFlow({ initialProject, user, githubRepos = [] 
       
       if (res.ok) {
          setGeoData(data.initial_geo)
+         setProjectName(data.project?.name || '')
          setStep('qa')
       } else {
          console.error("Failed to generate initial geo:", data.error)
@@ -67,7 +69,7 @@ export default function OnboardingFlow({ initialProject, user, githubRepos = [] 
              <p className="text-slate-500">Extracting context from your codebase and product website to generate an initial GEO baseline.</p>
            </div>
         )}
-        {step === 'qa' && <QaWizard initialGeo={geoData} onComplete={(data) => { console.log(data); setStep('done') }} />}
+        {step === 'qa' && <QaWizard initialGeo={geoData} projectName={projectName} onComplete={(data) => { console.log(data); setStep('done') }} />}
         {step === 'done' && (
            <div className="text-center py-10 space-y-4">
               <h2 className="text-3xl font-bold text-indigo-600">GEO Files Prepared!</h2>

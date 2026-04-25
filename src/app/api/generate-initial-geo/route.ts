@@ -67,7 +67,7 @@ export async function POST(request: Request) {
     console.log(`Generating initial GEO for: ${repoName} (Source: ${sourceOrigin})`)
     const { object: initialGeo } = await generateObject({
       model: openai('gpt-4o-mini'),
-      system: 'You are an expert product marketer. Based on the provided product information (extracted from their website or GitHub README), extract key details to help build a marketing profile. Be concise and accurate.',
+      system: 'You are an expert product marketer and GEO (Generative Engine Optimization) specialist. Based on the provided product information (extracted from their website or GitHub README), extract key details to build a comprehensive GEO profile. Be concise, accurate, and think about how AI search engines will understand and recommend this product.',
       prompt: `Analyze this product: ${repoName}\n\nProduct Information (${sourceOrigin}):\n${sourceContent.substring(0, 20000)}`,
       schema: z.object({
         idealCustomers: z.array(z.string()).describe("List of 2-4 target audience profiles"),
@@ -81,6 +81,8 @@ export async function POST(request: Request) {
         })).describe("List of 2-4 likely frequently asked questions"),
         useCases: z.array(z.string()).describe("List of 2-4 common use cases"),
         competitors: z.array(z.string()).describe("List of 1-3 likely competitors or alternative solutions, if known. Leave empty if none."),
+        targetPrompts: z.array(z.string()).describe("List of 5-8 high-intent search queries that the target audience would type into AI search engines like ChatGPT, Perplexity, or Claude to find solutions like this product. Use natural, conversational language."),
+        brandDefinition: z.string().describe("A one-sentence brand entity definition in the format: [Product] is a [category] that helps [target audience] solve [specific problem] by [unique approach]."),
       })
     })
 

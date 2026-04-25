@@ -12,42 +12,50 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { prompts } = await request.json()
+    const payload = await request.json()
+    const { brandDefinition, idealCustomers, problemSolutions, faqs, useCases, trustSignals, targetPrompts } = payload
 
-    if (!prompts || !Array.isArray(prompts) || prompts.length === 0) {
-      return NextResponse.json({ error: 'No prompts provided' }, { status: 400 })
+    if (!idealCustomers && !problemSolutions && !useCases) {
+      return NextResponse.json({ error: 'Insufficient product context provided' }, { status: 400 })
     }
 
-    // Loop through the prompts and fetch actual ChatGPT baseline
-    console.log('Sending prompts to OpenAI baseline...')
+    console.log('Synthesizing deep context into competitor matrix...')
     
-    // Process concurrently for speed
-    const fetchPromises = prompts.map(async (prompt) => {
-      const { text } = await generateText({
-        model: openai('gpt-4o-mini'),
-        prompt: prompt, // Just act like a normal user asking ChatGPT
-      })
-      return { prompt, text }
-    })
+    // Construct a comprehensive summary of the product to send to the AI
+    const productContext = `
+Brand Definition: ${brandDefinition || 'N/A'}
+Ideal Customers: ${JSON.stringify(idealCustomers || [])}
+Problems & Solutions: ${JSON.stringify(problemSolutions || [])}
+Frequently Asked Questions: ${JSON.stringify(faqs || [])}
+Key Use Cases: ${JSON.stringify(useCases || [])}
+Trust & Authority Signals: ${JSON.stringify(trustSignals || [])}
+Example Search Prompts Target Audience Uses: ${JSON.stringify(targetPrompts || [])}
+    `
 
-    const results = await Promise.all(fetchPromises)
-    
-    const aggregatedText = results.map(r => `--- PROMPT: ${r.prompt} ---\nRESPONSE:\n${r.text}\n`).join('\n')
-
-    console.log('Synthesizing responses into competitor matrix...')
     const { object } = await generateObject({
       model: openai('gpt-4o-mini'),
-      system: 'You are a competitive intelligence analyst. Analyze the following raw responses from an AI search engine across multiple user prompts. Identify the top 2 to 4 competitors frequently mentioned or recommended. Extract structured data comparing them on key factors like "Pricing", "Core Differentiator", and up to 2 other features. If a factor is not mentioned for a competitor, put "-". Return a strict JSON output.',
-      prompt: `Raw AI Output:\n${aggregatedText.substring(0, 35000)}`,
+      system: `You are an elite competitive intelligence analyst and product strategist. Your job is to analyze a new product based on its deep context (its origin story, target audience, specific problems it solves, and use cases).
+      
+Instead of just picking big generic apps, identify the 2 to 4 TRUE DIRECT ALTERNATIVES or competitors that the target audience would actually consider for these specific use cases. 
+
+Then, create a highly insightful competitive matrix. For each comparison factor:
+1. Identify the factor (e.g. Pricing, Core Differentiator, Where They Fail, Switching Costs).
+2. Provide a sharp, data-driven detail for each COMPETITOR.
+3. Provide a sharp, strategic detail for the OUR PRODUCT (the subject of the context provided).
+
+DO NOT just use generic factors like "Target Audience" or "AI Features". Be incisive.
+Return a strict JSON output matching the schema. If a factor is unknown, put "-".`,
+      prompt: `Analyze the following product context and generate a sharp competitive matrix including our product's own advantages:\n\n${productContext}`,
       schema: z.object({
-        competitors: z.array(z.string()).describe("Top 2-4 competitor names"),
+        competitors: z.array(z.string()).describe("Top 2-4 true competitor/alternative names"),
         factors: z.array(z.object({
-          feature: z.string().describe("E.g. Price, AI Features, Target Audience"),
+          feature: z.string().describe("E.g. Pricing, Core Differentiator, Where They Fail, Switching Costs"),
+          yoursValue: z.string().describe("Details for OUR product for this feature"),
           compEntries: z.array(z.object({
             name: z.string().describe("Competitor name"),
             value: z.string().describe("Details for this competitor on this feature")
           })).describe("One entry per competitor with their details for this feature")
-        })).describe("List of 3-4 feature comparison rows"),
+        })).describe("List of 3-4 insightful feature comparison rows"),
       })
     })
 
@@ -55,13 +63,13 @@ export async function POST(request: Request) {
     const formattedFactors = object.factors.map(f => {
       const comps: Record<string, string> = {}
       f.compEntries.forEach(entry => { comps[entry.name] = entry.value })
-      return { feature: f.feature, comps, yours: '' }
+      return { feature: f.feature, comps, yours: f.yoursValue }
     })
 
     return NextResponse.json({ 
       competitors: object.competitors, 
       factors: formattedFactors,
-      rawScanResults: results 
+      rawScanResults: [] // Retained for backwards compatibility if needed
     })
   } catch (error) {
     console.error('Scan Error:', error)

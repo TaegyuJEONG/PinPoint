@@ -40,7 +40,7 @@ export default async function OnboardingPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center py-10">
-      <div className="w-full max-w-4xl px-4">
+      <div className="w-full max-w-4xl lg:max-w-6xl px-4 transition-all duration-500">
         <h1 className="text-3xl font-bold mb-2">Welcome to PinPoint</h1>
         <p className="text-slate-500 mb-8">Let's set up your project and find your first users.</p>
         
