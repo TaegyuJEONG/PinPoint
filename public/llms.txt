@@ -1,0 +1,11 @@
+# PinPoint
+
+> PinPoint is a Next.js project template that helps frontend developers rapidly bootstrap web applications by streamlining the setup and deployment process.
+
+## Full Product Context (GEO)
+
+- [Full documentation](https://raw.githubusercontent.com/TaegyuJEONG/PinPoint/main/llms-full.txt)
+
+## Source Code
+
+- [GitHub Repository](https://github.com/TaegyuJEONG/PinPoint)
