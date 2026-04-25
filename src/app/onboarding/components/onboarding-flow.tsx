@@ -63,8 +63,8 @@ export default function OnboardingFlow({ initialProject, user, githubRepos = [] 
         {step === 'loading' && (
            <div className="flex flex-col items-center justify-center h-full py-20 space-y-4">
              <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
-             <h3 className="text-xl font-semibold">Analyzing Repository...</h3>
-             <p className="text-slate-500">Extracting context from your README and generating initial GEO.</p>
+             <h3 className="text-xl font-semibold">Analyzing Repository & Website...</h3>
+             <p className="text-slate-500">Extracting context from your codebase and product website to generate an initial GEO baseline.</p>
            </div>
         )}
         {step === 'qa' && <QaWizard initialGeo={geoData} onComplete={(data) => { console.log(data); setStep('done') }} />}

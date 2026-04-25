@@ -12,6 +12,7 @@ import { Globe } from 'lucide-react'
 export default function RepoSelector({ repos, onSelect }: { repos: any[], onSelect: (repo: any, customUrl?: string) => void }) {
   const [searchTerm, setSearchTerm] = useState('')
   const [customUrl, setCustomUrl] = useState('')
+  const [selectedRepo, setSelectedRepo] = useState<any | null>(null)
   const [selecting, setSelecting] = useState<number | null>(null)
 
   const filteredRepos = repos.filter(repo => 
@@ -19,11 +20,85 @@ export default function RepoSelector({ repos, onSelect }: { repos: any[], onSele
   )
 
   function handleSelect(repo: any) {
-    setSelecting(repo.id)
-    onSelect(repo, customUrl)
+    setSelectedRepo(repo)
+    // Auto-fill custom URL if the repository already has a homepage defined
+    if (repo.homepage && !customUrl) {
+      setCustomUrl(repo.homepage)
+    }
+  }
+
+  function handleConfirm() {
+    if (!selectedRepo) return
+    setSelecting(selectedRepo.id)
+    onSelect(selectedRepo, customUrl)
   }
 
   const hasPrivateRepos = repos.some(repo => repo.private)
+
+  if (selectedRepo) {
+    return (
+      <div className="space-y-6 py-4">
+        <div className="text-center space-y-2 mb-8">
+          <h2 className="text-2xl font-bold">Product Website</h2>
+          <p className="text-muted-foreground text-sm">We'll analyze your codebase and live website together to create better marketing assets.</p>
+        </div>
+
+        <div className="max-w-xl mx-auto space-y-6">
+          {/* Selected Repo Card (Read Only) */}
+          <Card className="p-4 bg-slate-50 border-slate-200">
+             <div className="flex items-center space-x-3">
+               <div className="h-10 w-10 bg-indigo-100 text-indigo-600 rounded-lg flex items-center justify-center shrink-0">
+                 <FolderGit2 className="h-5 w-5" />
+               </div>
+               <div className="flex-1 overflow-hidden">
+                  <h3 className="font-bold text-sm text-slate-800 truncate">{selectedRepo.name}</h3>
+                  <p className="text-xs text-slate-500 truncate">{selectedRepo.full_name}</p>
+               </div>
+               <div className="text-right">
+                  <Button variant="ghost" size="sm" className="h-8 text-xs font-semibold text-slate-500 hover:text-indigo-600" onClick={() => setSelectedRepo(null)}>
+                    Change Repo
+                  </Button>
+               </div>
+             </div>
+          </Card>
+
+          {/* URL Input */}
+          <div className="bg-white border text-left border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
+            <label className="flex items-center gap-2 text-sm font-bold text-slate-800">
+              <Globe className="h-4 w-4 text-slate-500" />
+              Website URL (Optional)
+            </label>
+            <div className="relative">
+              <Input 
+                placeholder="e.g. https://genkle.ai" 
+                className="h-12 bg-white border-slate-200 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm rounded-xl w-full text-base"
+                value={customUrl}
+                onChange={e => setCustomUrl(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') handleConfirm() }}
+              />
+            </div>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              If your product is already live, our AI will scrape the actual landing page to fully capture your tone and current messaging.
+            </p>
+          </div>
+          
+          <div className="flex justify-end pt-4">
+             <Button 
+                onClick={handleConfirm} 
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-6 rounded-xl font-bold shadow-md w-full sm:w-auto h-auto transition-all"
+                disabled={selecting !== null}
+             >
+                {selecting !== null ? (
+                  <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Analyzing...</>
+                ) : (
+                  'Start Analysis'
+                )}
+             </Button>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6 py-4">
@@ -32,34 +107,15 @@ export default function RepoSelector({ repos, onSelect }: { repos: any[], onSele
         <p className="text-muted-foreground text-sm">Choose the codebase you want to generate documentation and outreach for.</p>
       </div>
 
-      <div className="max-w-2xl mx-auto space-y-4 mb-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-            <Input 
-              placeholder="Search repositories..." 
-              className="pl-9 h-11 bg-white border-slate-200 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm rounded-xl" 
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-            />
-          </div>
-          <div className="relative">
-            <Globe className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-            <Input 
-              placeholder="Product URL (e.g. https://genkle.ai)" 
-              className="pl-9 h-11 bg-white border-slate-200 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm rounded-xl"
-              value={customUrl}
-              onChange={e => setCustomUrl(e.target.value)}
-            />
-            <div className="absolute right-3 top-3">
-              <div className="group relative">
-                <div className="text-[10px] text-slate-400 cursor-help border border-slate-200 rounded px-1.5 py-0.5 bg-slate-50">?</div>
-                <div className="absolute bottom-full right-0 mb-2 w-48 p-2 bg-slate-800 text-white text-[10px] rounded shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
-                  AI가 실제 홈페이지를 분석하여 더 정확한 마케팅 문구를 생성합니다. (깃허브에 등록된 주소보다 우선 연동됩니다)
-                </div>
-              </div>
-            </div>
-          </div>
+      <div className="max-w-2xl mx-auto space-y-6 mb-8">
+        <div className="relative">
+          <Search className="absolute left-3 top-3.5 h-4 w-4 text-slate-400" />
+          <Input 
+            placeholder="Search your repositories to start..." 
+            className="pl-9 h-12 bg-white border-slate-200 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm rounded-xl text-base" 
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+          />
         </div>
       </div>
 
@@ -76,13 +132,13 @@ export default function RepoSelector({ repos, onSelect }: { repos: any[], onSele
           filteredRepos.map(repo => (
             <Card 
               key={repo.id} 
-              className={`group relative p-4 cursor-pointer transition-all duration-200 border-slate-200 hover:border-indigo-500 hover:shadow-lg bg-white overflow-hidden ${selecting === repo.id ? 'border-indigo-600 ring-2 ring-indigo-500/20 shadow-md' : ''}`}
+              className={`group relative p-4 cursor-pointer transition-all duration-200 border-slate-200 hover:border-indigo-500 hover:shadow-lg bg-white overflow-hidden`}
               onClick={() => handleSelect(repo)}
             >
                <div className="flex items-start justify-between relative z-10">
                  <div className="space-y-1.5 overflow-hidden flex-1">
                    <div className="flex items-center space-x-2">
-                     <FolderGit2 className={`h-4 w-4 shrink-0 transition-colors ${selecting === repo.id ? 'text-indigo-600' : 'text-slate-400 group-hover:text-indigo-500'}`} />
+                     <FolderGit2 className={`h-4 w-4 shrink-0 transition-colors text-slate-400 group-hover:text-indigo-500`} />
                      <h3 className="font-bold truncate text-sm text-slate-800">
                        {repo.name}
                        {repo.private && <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-medium bg-amber-50 text-amber-700 border border-amber-100 uppercase">Private</span>}
@@ -95,13 +151,9 @@ export default function RepoSelector({ repos, onSelect }: { repos: any[], onSele
                    )}
                  </div>
                  <div className="flex items-center ml-2">
-                   {selecting === repo.id ? (
-                     <Loader2 className="h-4 w-4 animate-spin text-indigo-600 shrink-0" />
-                   ) : (
-                     <div className="h-6 px-2 rounded-full bg-slate-50 text-[10px] font-bold text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity flex items-center border border-slate-200 uppercase tracking-wider">
-                       Select
-                     </div>
-                   )}
+                   <div className="h-6 px-2 rounded-full bg-slate-50 text-[10px] font-bold text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity flex items-center border border-slate-200 uppercase tracking-wider">
+                     Select
+                   </div>
                  </div>
                </div>
                
@@ -122,7 +174,7 @@ export default function RepoSelector({ repos, onSelect }: { repos: any[], onSele
                 Elevate access to include your private codebases.
               </p>
             </div>
-            <form action={signInWithGithubPrivate} method="POST">
+            <form action={signInWithGithubPrivate}>
               <Button 
                 type="submit" 
                 variant="outline" 
