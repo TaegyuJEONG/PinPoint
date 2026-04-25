@@ -13,14 +13,14 @@ export default async function LoginPage({
   
   return (
     <div className="min-h-screen grid grid-cols-1 md:grid-cols-2 bg-slate-50">
-      <div className="hidden md:flex flex-col justify-center items-center bg-indigo-600 text-white p-12">
+      <div className="hidden md:flex flex-col justify-center items-center bg-brand-600 text-white p-12">
         <div className="max-w-md space-y-6">
           <Link href="/" className="inline-flex items-center space-x-2 font-bold text-2xl">
             <Target className="h-8 w-8 text-white" />
             <span>PinPoint</span>
           </Link>
           <h1 className="text-4xl font-bold tracking-tight">Focus on Building. We handle the outreach.</h1>
-          <p className="text-indigo-100 text-lg">
+          <p className="text-brand-100 text-lg">
             Connect your GitHub repository, and we'll instantly generate your target audience and community outreach strategy directly from your codebase.
           </p>
         </div>
@@ -31,7 +31,7 @@ export default async function LoginPage({
           <CardHeader className="space-y-2 text-center pb-6">
             <div className="flex justify-center mb-4 md:hidden">
               <Link href="/" className="inline-flex items-center space-x-2 font-bold text-xl text-slate-800">
-                <Target className="h-6 w-6 text-indigo-600" />
+                <Target className="h-6 w-6 text-brand-600" />
                 <span>PinPoint</span>
               </Link>
             </div>

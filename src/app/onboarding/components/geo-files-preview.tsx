@@ -96,7 +96,7 @@ export default function GeoFilesPreview({
       {/* Header */}
       <div className="space-y-1">
         <div className="flex items-center gap-2">
-          <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+          <CheckCircle2 className="h-5 w-5 text-success-500" />
           <h2 className="text-xl font-bold text-slate-900">GEO Files Generated</h2>
         </div>
         <p className="text-sm text-slate-500">
@@ -111,7 +111,7 @@ export default function GeoFilesPreview({
           className={cn(
             'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all',
             activeTab === 'llms'
-              ? 'bg-white text-indigo-700 shadow-sm'
+              ? 'bg-white text-brand-700 shadow-sm'
               : 'text-slate-500 hover:text-slate-700'
           )}
         >
@@ -123,7 +123,7 @@ export default function GeoFilesPreview({
           className={cn(
             'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all',
             activeTab === 'llms-full'
-              ? 'bg-white text-indigo-700 shadow-sm'
+              ? 'bg-white text-brand-700 shadow-sm'
               : 'text-slate-500 hover:text-slate-700'
           )}
         >
@@ -165,10 +165,10 @@ export default function GeoFilesPreview({
 
       {/* Push result banner */}
       {pushState === 'success' && pushResult && (
-        <div className="flex items-start gap-3 p-4 bg-emerald-50 border border-emerald-200 rounded-xl">
-          <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
+        <div className="flex items-start gap-3 p-4 bg-success-50 border border-success-200 rounded-xl">
+          <CheckCircle2 className="h-5 w-5 text-success-600 shrink-0 mt-0.5" />
           <div className="space-y-1">
-            <p className="text-sm font-semibold text-emerald-800">
+            <p className="text-sm font-semibold text-success-800">
               Successfully pushed to <code className="font-mono">{repoName}</code>
               {pushResult.targetDir && pushResult.targetDir !== '(repo root)' && (
                 <> → <code className="font-mono">{pushResult.targetDir}</code></>
@@ -180,7 +180,7 @@ export default function GeoFilesPreview({
                   href={pushResult.urls.llmsTxt}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs text-emerald-700 underline underline-offset-2 hover:text-emerald-900"
+                  className="text-xs text-success-700 underline underline-offset-2 hover:text-success-900"
                 >
                   View llms.txt on GitHub ↗
                 </a>
@@ -190,7 +190,7 @@ export default function GeoFilesPreview({
                   href={pushResult.urls.llmsFullTxt}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs text-emerald-700 underline underline-offset-2 hover:text-emerald-900"
+                  className="text-xs text-success-700 underline underline-offset-2 hover:text-success-900"
                 >
                   View llms-full.txt on GitHub ↗
                 </a>
@@ -203,23 +203,23 @@ export default function GeoFilesPreview({
       {(pushState === 'error' || pushState === 'insufficient_permissions') && pushResult?.error && (
         <div className={cn(
           "flex items-start gap-3 p-4 border rounded-xl",
-          pushState === 'insufficient_permissions' ? "bg-amber-50 border-amber-200" : "bg-red-50 border-red-200"
+          pushState === 'insufficient_permissions' ? "bg-caution-50 border-caution-200" : "bg-red-50 border-red-200"
         )}>
           {pushState === 'insufficient_permissions' ? (
-            <Lock className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
+            <Lock className="h-5 w-5 text-caution-500 shrink-0 mt-0.5" />
           ) : (
             <AlertCircle className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
           )}
           <div className="space-y-1">
             <p className={cn(
               "text-sm font-semibold",
-              pushState === 'insufficient_permissions' ? "text-amber-800" : "text-red-800"
+              pushState === 'insufficient_permissions' ? "text-caution-800" : "text-red-800"
             )}>
               {pushState === 'insufficient_permissions' ? 'Write Access Required' : 'Push failed'}
             </p>
             <p className={cn(
               "text-xs",
-              pushState === 'insufficient_permissions' ? "text-amber-600" : "text-red-500"
+              pushState === 'insufficient_permissions' ? "text-caution-600" : "text-red-500"
             )}>
               {pushResult.error}
             </p>
@@ -233,7 +233,7 @@ export default function GeoFilesPreview({
           <form action={signInWithGithubPrivate}>
             <Button
               type="submit"
-              className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white min-w-[200px]"
+              className="gap-2 bg-brand-600 hover:bg-brand-700 text-white min-w-[200px]"
             >
               <Lock className="h-4 w-4" />
               Authorize Write Access
@@ -248,7 +248,7 @@ export default function GeoFilesPreview({
             {pushState === 'loading' ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : pushState === 'success' ? (
-              <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+              <CheckCircle2 className="h-4 w-4 text-success-400" />
             ) : (
               <GitBranch className="h-4 w-4" />
             )}

@@ -89,13 +89,15 @@ export async function POST(request: Request) {
     // 4. Create or Update the Project in DB
     console.log('Saving project to DB...')
     
-    // Check if project exists to avoid duplicates (since we don't have unique index yet)
-    const { data: existingProject } = await supabase
+    // Check if project exists to avoid duplicates — limit(1) handles multiple existing rows
+    const { data: existingRows } = await supabase
       .from('projects')
       .select('id')
       .eq('user_id', user.id)
       .eq('github_repo_url', repoUrl)
-      .single()
+      .order('created_at', { ascending: false })
+      .limit(1)
+    const existingProject = existingRows?.[0] ?? null
 
     let project, error;
 

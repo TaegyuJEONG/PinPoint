@@ -1,8 +1,9 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
-import { Target, Radio, MessageSquare, TrendingUp } from 'lucide-react'
+import { Target, Radio, MessageSquare, TrendingUp, Wifi, WifiOff } from 'lucide-react'
 import Link from 'next/link'
 import DashboardTabs from './components/dashboard-tabs'
+import SetupChecklist from './components/setup-checklist'
 
 export const metadata = {
   title: 'Dashboard — PinPoint',
@@ -15,14 +16,32 @@ export default async function DashboardPage() {
 
   if (!user) redirect('/login')
 
-  // Fetch project
-  const { data: project } = await supabase
+  // Fetch most recent project — .single() breaks when >1 row exists, so use limit(1)
+  const { data: projectRows } = await supabase
     .from('projects')
     .select('*')
     .eq('user_id', user.id)
-    .single()
+    .order('created_at', { ascending: false })
+    .limit(1)
 
+  const project = projectRows?.[0] ?? null
   if (!project) redirect('/onboarding')
+
+  // Fetch GEO files (to know if geo is done)
+  const { data: geoFiles } = await supabase
+    .from('geo_files')
+    .select('id, created_at')
+    .eq('project_id', project.id)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  // Fetch Reddit account connection
+  const { data: redditAccount } = await supabase
+    .from('reddit_accounts')
+    .select('id, reddit_username')
+    .eq('project_id', project.id)
+    .maybeSingle()
 
   // Fetch pending comments (status = 'pending')
   const { data: pendingComments } = await supabase
@@ -44,28 +63,42 @@ export default async function DashboardPage() {
   const postedCount = postedComments?.length ?? 0
   const convertedCount = postedComments?.filter(c => c.conversions?.length > 0).length ?? 0
 
+  const geoFilesReady = !!geoFiles
+  const redditConnected = !!redditAccount
+  const keywords: string[] = Array.isArray(project.keywords) ? project.keywords : []
+
+  // Show setup only when not all done
+  const showSetup = !geoFilesReady || !redditConnected
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
       {/* Top nav */}
       <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200 h-14 flex items-center px-6">
         <Link href="/" className="flex items-center gap-2 mr-8">
-          <Target className="h-5 w-5 text-indigo-600" />
+          <Target className="h-5 w-5 text-brand-600" />
           <span className="text-lg font-bold tracking-tight">PinPoint</span>
         </Link>
 
         <nav className="flex items-center gap-1 text-sm">
-          <span className="px-3 py-1.5 rounded-lg font-medium bg-indigo-50 text-indigo-700">
+          <span className="px-3 py-1.5 rounded-lg font-medium bg-brand-50 text-brand-700">
             Dashboard
           </span>
         </nav>
 
         <div className="ml-auto flex items-center gap-3">
-          {/* Reddit connection status — placeholder */}
-          <div className="flex items-center gap-1.5 text-xs font-medium text-slate-400 border border-slate-200 px-3 py-1.5 rounded-full">
-            <Radio className="h-3 w-3" />
-            Reddit: not connected
-          </div>
-          <div className="h-7 w-7 rounded-full bg-indigo-100 flex items-center justify-center text-xs font-bold text-indigo-700">
+          {/* Reddit connection status */}
+          {redditConnected ? (
+            <div className="flex items-center gap-1.5 text-xs font-medium text-success-600 border border-success-200 bg-success-50 px-3 py-1.5 rounded-full">
+              <Wifi className="h-3 w-3" />
+              u/{redditAccount?.reddit_username}
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5 text-xs font-medium text-slate-400 border border-slate-200 px-3 py-1.5 rounded-full">
+              <WifiOff className="h-3 w-3" />
+              Reddit: not connected
+            </div>
+          )}
+          <div className="h-7 w-7 rounded-full bg-brand-100 flex items-center justify-center text-xs font-bold text-brand-700">
             {user.email?.[0]?.toUpperCase() ?? 'U'}
           </div>
         </div>
@@ -81,32 +114,42 @@ export default async function DashboardPage() {
               href={project.github_repo_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm text-slate-500 hover:text-indigo-600 transition-colors"
+              className="text-sm text-slate-500 hover:text-brand-600 transition-colors"
             >
               {project.github_repo_url}
             </a>
           )}
         </div>
 
+        {/* Setup checklist — shown until Reddit is connected */}
+        {showSetup && (
+          <SetupChecklist
+            geoFilesReady={geoFilesReady}
+            redditConnected={redditConnected}
+            keywords={keywords}
+            projectName={project.name}
+          />
+        )}
+
         {/* Stats row */}
         <div className="grid grid-cols-3 gap-4">
           <StatCard
-            icon={<MessageSquare className="h-5 w-5 text-indigo-500" />}
+            icon={<MessageSquare className="h-5 w-5 text-brand-500" />}
             label="Awaiting Review"
             value={pendingCount}
-            accent="indigo"
+            accent="brand"
           />
           <StatCard
-            icon={<Radio className="h-5 w-5 text-emerald-500" />}
+            icon={<Radio className="h-5 w-5 text-success-500" />}
             label="Comments Posted"
             value={postedCount}
-            accent="emerald"
+            accent="success"
           />
           <StatCard
-            icon={<TrendingUp className="h-5 w-5 text-amber-500" />}
+            icon={<TrendingUp className="h-5 w-5 text-caution-500" />}
             label="Conversions Tracked"
             value={convertedCount}
-            accent="amber"
+            accent="caution"
           />
         </div>
 
@@ -115,6 +158,7 @@ export default async function DashboardPage() {
           pendingComments={pendingComments ?? []}
           postedComments={postedComments ?? []}
           projectId={project.id}
+          redditConnected={redditConnected}
         />
       </main>
     </div>
@@ -130,12 +174,12 @@ function StatCard({
   icon: React.ReactNode
   label: string
   value: number
-  accent: 'indigo' | 'emerald' | 'amber'
+  accent: 'brand' | 'success' | 'caution'
 }) {
   const bg = {
-    indigo: 'bg-indigo-50 border-indigo-100',
-    emerald: 'bg-emerald-50 border-emerald-100',
-    amber: 'bg-amber-50 border-amber-100',
+    brand: 'bg-brand-50 border-brand-100',
+    success: 'bg-success-50 border-success-100',
+    caution: 'bg-caution-50 border-caution-100',
   }[accent]
 
   return (

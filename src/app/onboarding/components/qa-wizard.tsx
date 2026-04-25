@@ -95,11 +95,11 @@ export default function QaWizard({ initialGeo, projectName, onComplete }: { init
       <div className="mb-4 space-y-1">
         <div className="flex items-center justify-between">
           <span className="text-sm font-medium text-slate-500">Step {currentStepId} of 7</span>
-          <span className="text-sm font-medium text-indigo-600">{currentStep.title}</span>
+          <span className="text-sm font-medium text-brand-600">{currentStep.title}</span>
         </div>
         <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
           <div
-            className="h-full bg-indigo-600 transition-all duration-300 ease-in-out"
+            className="h-full bg-brand-600 transition-all duration-300 ease-in-out"
             style={{ width: `${(currentStepId / 7) * 100}%` }}
           />
         </div>
@@ -120,8 +120,8 @@ export default function QaWizard({ initialGeo, projectName, onComplete }: { init
         {isSynthesizing && currentStepId === 7 && (
           <div className="flex flex-col items-center justify-center h-64 space-y-6 text-center px-4">
             <div className="relative">
-              <Loader2 className="h-10 w-10 animate-spin text-indigo-600" />
-              <div className="absolute inset-0 h-10 w-10 bg-indigo-600/10 rounded-full blur-xl animate-pulse"></div>
+              <Loader2 className="h-10 w-10 animate-spin text-brand-600" />
+              <div className="absolute inset-0 h-10 w-10 bg-brand-600/10 rounded-full blur-xl animate-pulse"></div>
             </div>
             <div className="space-y-2">
               <p className="text-lg font-semibold text-slate-900">Analyzing Market Positioning...</p>
@@ -162,7 +162,7 @@ export default function QaWizard({ initialGeo, projectName, onComplete }: { init
               Skip this step
             </Button>
           )}
-          <Button onClick={handleNext} className="bg-indigo-600 hover:bg-indigo-700" disabled={isSynthesizing}>
+          <Button onClick={handleNext} className="bg-brand-600 hover:bg-brand-700" disabled={isSynthesizing}>
             {currentStepId === 7 ? 'Generate GEO Files' : 'Next Step'}
           </Button>
         </div>
@@ -178,7 +178,7 @@ function BrandEntityEditor({ value, onChange }: { value: string, onChange: (v: s
     <div className="space-y-4 pt-2">
       <div className="space-y-1">
         <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest pl-1">Format Guide</p>
-        <div className="p-3 bg-indigo-50 border border-indigo-100 rounded-xl text-xs text-indigo-800 leading-relaxed">
+        <div className="p-3 bg-brand-50 border border-brand-100 rounded-xl text-xs text-brand-800 leading-relaxed">
           <span className="font-bold">[Product]</span> is a <span className="font-bold">[category]</span> that helps{' '}
           <span className="font-bold">[target audience]</span> solve{' '}
           <span className="font-bold">[specific problem]</span> by{' '}
@@ -186,7 +186,7 @@ function BrandEntityEditor({ value, onChange }: { value: string, onChange: (v: s
         </div>
       </div>
       <div className="space-y-1">
-        <div className="relative bg-white border border-slate-200 rounded-2xl hover:border-indigo-400 focus-within:border-indigo-600 focus-within:ring-4 focus-within:ring-indigo-500/5 transition-all overflow-hidden shadow-sm">
+        <div className="relative bg-white border border-slate-200 rounded-2xl hover:border-brand-400 focus-within:border-brand-600 focus-within:ring-4 focus-within:ring-brand-500/5 transition-all overflow-hidden shadow-sm">
           <textarea
             className="w-full p-4 bg-transparent border-none focus:ring-0 focus:outline-none resize-none overflow-hidden leading-relaxed text-sm transition-all"
             placeholder="E.g. Genkle.ai is an AI writing coach that helps non-native English speakers communicate with confidence by providing real-time, context-aware feedback on tone and clarity."
@@ -251,8 +251,8 @@ function TrustEditor({ items, setItems }: { items: { type: string, content: stri
                     className={cn(
                       "px-3 py-1.5 rounded-full text-xs font-medium transition-all border",
                       item.type === type
-                        ? "bg-indigo-600 text-white border-indigo-600"
-                        : "bg-white text-slate-500 border-slate-200 hover:border-indigo-300 hover:text-indigo-600"
+                        ? "bg-brand-600 text-white border-brand-600"
+                        : "bg-white text-slate-500 border-slate-200 hover:border-brand-300 hover:text-brand-600"
                     )}
                   >
                     {type}
@@ -263,7 +263,7 @@ function TrustEditor({ items, setItems }: { items: { type: string, content: stri
 
             <div className="space-y-1">
               <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">Content</label>
-              <div className="relative bg-white border border-slate-200 rounded-xl hover:border-indigo-400 focus-within:border-indigo-600 focus-within:ring-4 focus-within:ring-indigo-500/5 transition-all overflow-hidden shadow-sm">
+              <div className="relative bg-white border border-slate-200 rounded-xl hover:border-brand-400 focus-within:border-brand-600 focus-within:ring-4 focus-within:ring-brand-500/5 transition-all overflow-hidden shadow-sm">
                 <textarea
                   value={item.content}
                   rows={2}
@@ -295,7 +295,7 @@ function TrustEditor({ items, setItems }: { items: { type: string, content: stri
           </div>
         </div>
       ))}
-      <Button variant="outline" className="w-full border-dashed h-12 rounded-xl text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 hover:border-indigo-200 transition-all" onClick={add}>
+      <Button variant="outline" className="w-full border-dashed h-12 rounded-xl text-slate-500 hover:text-brand-600 hover:bg-brand-50 hover:border-brand-200 transition-all" onClick={add}>
         <Plus className="h-4 w-4 mr-2" /> Add Proof Point
       </Button>
     </div>
@@ -321,7 +321,7 @@ function ListEditor({ items, setItems, placeholder }: { items: string[], setItem
       <div className="space-y-1">
         {items.map((item, i) => (
           <div key={i} className="group space-y-1">
-            <div className="relative bg-white border border-slate-200 rounded-xl hover:border-indigo-400 focus-within:border-indigo-600 focus-within:ring-0 transition-all duration-200 shadow-sm flex items-center min-h-[64px] overflow-hidden">
+            <div className="relative bg-white border border-slate-200 rounded-xl hover:border-brand-400 focus-within:border-brand-600 focus-within:ring-0 transition-all duration-200 shadow-sm flex items-center min-h-[64px] overflow-hidden">
               <textarea
                 value={item}
                 rows={1}
@@ -368,9 +368,9 @@ function ListEditor({ items, setItems, placeholder }: { items: string[], setItem
             }}
             maxLength={300}
             placeholder={placeholder}
-            className="flex-1 p-3 text-sm rounded-xl border border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-400 transition-all resize-none overflow-hidden min-h-[44px] leading-relaxed"
+            className="flex-1 p-3 text-sm rounded-xl border border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-2 focus:ring-brand-500/10 focus:border-brand-400 transition-all resize-none overflow-hidden min-h-[44px] leading-relaxed"
           />
-          <Button variant="outline" size="icon" onClick={add} className="h-11 w-11 rounded-xl border-indigo-200 text-indigo-600 hover:bg-indigo-50 shrink-0">
+          <Button variant="outline" size="icon" onClick={add} className="h-11 w-11 rounded-xl border-brand-200 text-brand-600 hover:bg-brand-50 shrink-0">
             <Plus className="h-4 w-4" />
           </Button>
         </div>
@@ -399,7 +399,7 @@ function PairEditor({ items, setItems, k1, k2, pl1, pl2 }: { items: any[], setIt
           <div className="space-y-5">
             <div className="space-y-1">
               <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">{k1}</label>
-              <div className="relative bg-white border border-slate-200 rounded-2xl hover:border-indigo-400 focus-within:border-indigo-600 focus-within:ring-4 focus-within:ring-indigo-500/5 transition-all flex items-center min-h-[56px] overflow-hidden shadow-sm">
+              <div className="relative bg-white border border-slate-200 rounded-2xl hover:border-brand-400 focus-within:border-brand-600 focus-within:ring-4 focus-within:ring-brand-500/5 transition-all flex items-center min-h-[56px] overflow-hidden shadow-sm">
                 <textarea
                   value={item[k1]}
                   rows={1}
@@ -425,7 +425,7 @@ function PairEditor({ items, setItems, k1, k2, pl1, pl2 }: { items: any[], setIt
             </div>
             <div className="space-y-1">
               <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">{k2}</label>
-              <div className="relative bg-white border border-slate-200 rounded-2xl hover:border-indigo-400 focus-within:border-indigo-600 focus-within:ring-4 focus-within:ring-indigo-500/5 transition-all flex items-center min-h-[56px] overflow-hidden shadow-sm">
+              <div className="relative bg-white border border-slate-200 rounded-2xl hover:border-brand-400 focus-within:border-brand-600 focus-within:ring-4 focus-within:ring-brand-500/5 transition-all flex items-center min-h-[56px] overflow-hidden shadow-sm">
                 <textarea
                   value={item[k2]}
                   rows={1}
@@ -452,7 +452,7 @@ function PairEditor({ items, setItems, k1, k2, pl1, pl2 }: { items: any[], setIt
           </div>
         </div>
       ))}
-      <Button variant="outline" className="w-full border-dashed h-12 rounded-xl text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 hover:border-indigo-200 transition-all" onClick={add}>
+      <Button variant="outline" className="w-full border-dashed h-12 rounded-xl text-slate-500 hover:text-brand-600 hover:bg-brand-50 hover:border-brand-200 transition-all" onClick={add}>
         <Plus className="h-4 w-4 mr-2" /> Add {k1} Pair
       </Button>
     </div>
@@ -471,7 +471,7 @@ function CompetitorMatrix({ competitors, factors, setFactors, projectName }: { c
         <thead className="bg-slate-100 border-b border-slate-200">
           <tr>
             <th className="px-3 py-3 font-semibold min-w-[150px]">Factor / Feature</th>
-            <th className="px-3 py-3 font-bold text-indigo-700 bg-indigo-50 min-w-[150px]">{projectName || 'You'}</th>
+            <th className="px-3 py-3 font-bold text-brand-700 bg-brand-50 min-w-[150px]">{projectName || 'You'}</th>
             {competitors.map((c, i) => <th key={i} className="px-3 py-3 font-semibold text-slate-500 min-w-[150px]">{c}</th>)}
             <th className="px-3 py-3 w-10"></th>
           </tr>
@@ -499,13 +499,13 @@ function CompetitorMatrix({ competitors, factors, setFactors, projectName }: { c
                   }}
                 />
               </td>
-              <td className="px-1 py-1 align-top bg-indigo-50/30">
+              <td className="px-1 py-1 align-top bg-brand-50/30">
                 <textarea
                   value={f.yours}
                   onChange={(e) => { const nc = [...factors]; nc[i].yours = e.target.value; setFactors(nc) }}
                   rows={1}
                   placeholder="..."
-                  className="w-full px-2 py-2 text-xs bg-transparent border-none focus:ring-0 focus:outline-none resize-none overflow-hidden leading-relaxed font-bold text-indigo-900"
+                  className="w-full px-2 py-2 text-xs bg-transparent border-none focus:ring-0 focus:outline-none resize-none overflow-hidden leading-relaxed font-bold text-brand-900"
                   ref={(el) => {
                     if (el) {
                       const resize = () => { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; }

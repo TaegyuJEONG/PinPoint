@@ -47,7 +47,7 @@ export default function RepoSelector({ repos, onSelect }: { repos: any[], onSele
           {/* Selected Repo Card (Read Only) */}
           <Card className="p-4 bg-slate-50 border-slate-200">
              <div className="flex items-center space-x-3">
-               <div className="h-10 w-10 bg-indigo-100 text-indigo-600 rounded-lg flex items-center justify-center shrink-0">
+               <div className="h-10 w-10 bg-brand-100 text-brand-600 rounded-lg flex items-center justify-center shrink-0">
                  <FolderGit2 className="h-5 w-5" />
                </div>
                <div className="flex-1 overflow-hidden">
@@ -55,7 +55,7 @@ export default function RepoSelector({ repos, onSelect }: { repos: any[], onSele
                   <p className="text-xs text-slate-500 truncate">{selectedRepo.full_name}</p>
                </div>
                <div className="text-right">
-                  <Button variant="ghost" size="sm" className="h-8 text-xs font-semibold text-slate-500 hover:text-indigo-600" onClick={() => setSelectedRepo(null)}>
+                  <Button variant="ghost" size="sm" className="h-8 text-xs font-semibold text-slate-500 hover:text-brand-600" onClick={() => setSelectedRepo(null)}>
                     Change Repo
                   </Button>
                </div>
@@ -71,7 +71,7 @@ export default function RepoSelector({ repos, onSelect }: { repos: any[], onSele
             <div className="relative">
               <Input 
                 placeholder="e.g. https://genkle.ai" 
-                className="h-12 bg-white border-slate-200 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm rounded-xl w-full text-base"
+                className="h-12 bg-white border-slate-200 focus:ring-brand-500 focus:border-brand-500 shadow-sm rounded-xl w-full text-base"
                 value={customUrl}
                 onChange={e => setCustomUrl(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') handleConfirm() }}
@@ -83,9 +83,9 @@ export default function RepoSelector({ repos, onSelect }: { repos: any[], onSele
           </div>
           
           <div className="flex justify-end pt-4">
-             <Button 
-                onClick={handleConfirm} 
-                className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-6 rounded-xl font-bold shadow-md w-full sm:w-auto h-auto transition-all"
+             <Button
+                onClick={handleConfirm}
+                className="bg-brand-600 hover:bg-brand-700 text-white px-8 py-6 rounded-xl font-bold shadow-md w-full sm:w-auto h-auto transition-all"
                 disabled={selecting !== null}
              >
                 {selecting !== null ? (
@@ -112,7 +112,7 @@ export default function RepoSelector({ repos, onSelect }: { repos: any[], onSele
           <Search className="absolute left-3 top-3.5 h-4 w-4 text-slate-400" />
           <Input 
             placeholder="Search your repositories to start..." 
-            className="pl-9 h-12 bg-white border-slate-200 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm rounded-xl text-base" 
+            className="pl-9 h-12 bg-white border-slate-200 focus:ring-brand-500 focus:border-brand-500 shadow-sm rounded-xl text-base" 
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
           />
@@ -132,16 +132,16 @@ export default function RepoSelector({ repos, onSelect }: { repos: any[], onSele
           filteredRepos.map(repo => (
             <Card 
               key={repo.id} 
-              className={`group relative p-4 cursor-pointer transition-all duration-200 border-slate-200 hover:border-indigo-500 hover:shadow-lg bg-white overflow-hidden`}
+              className={`group relative p-4 cursor-pointer transition-all duration-200 border-slate-200 hover:border-brand-500 hover:shadow-lg bg-white overflow-hidden`}
               onClick={() => handleSelect(repo)}
             >
                <div className="flex items-start justify-between relative z-10">
                  <div className="space-y-1.5 overflow-hidden flex-1">
                    <div className="flex items-center space-x-2">
-                     <FolderGit2 className={`h-4 w-4 shrink-0 transition-colors text-slate-400 group-hover:text-indigo-500`} />
+                     <FolderGit2 className={`h-4 w-4 shrink-0 transition-colors text-slate-400 group-hover:text-brand-500`} />
                      <h3 className="font-bold truncate text-sm text-slate-800">
                        {repo.name}
-                       {repo.private && <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-medium bg-amber-50 text-amber-700 border border-amber-100 uppercase">Private</span>}
+                       {repo.private && <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-medium bg-caution-50 text-caution-700 border border-caution-100 uppercase">Private</span>}
                      </h3>
                    </div>
                    {repo.description ? (
@@ -158,7 +158,7 @@ export default function RepoSelector({ repos, onSelect }: { repos: any[], onSele
                </div>
                
                {/* Subtle background glow on hover */}
-               <div className="absolute inset-0 bg-indigo-50/0 group-hover:bg-indigo-50/30 transition-colors pointer-events-none" />
+               <div className="absolute inset-0 bg-brand-50/0 group-hover:bg-brand-50/30 transition-colors pointer-events-none" />
             </Card>
           ))
         )}
@@ -178,7 +178,7 @@ export default function RepoSelector({ repos, onSelect }: { repos: any[], onSele
               <Button 
                 type="submit" 
                 variant="outline" 
-                className="w-full bg-white hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 font-bold text-xs shadow-sm transition-all py-5"
+                className="w-full bg-white hover:bg-brand-50 hover:text-brand-600 hover:border-brand-200 font-bold text-xs shadow-sm transition-all py-5"
               >
                 Enable Private Access
               </Button>

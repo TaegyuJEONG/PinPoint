@@ -1,13 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
 import { cookies } from 'next/headers'
-import fs from 'fs'
-import path from 'node:path'
-
-function debugLog(msg: string) {
-  const line = `[${new Date().toISOString()}] ${msg}\n`
-  fs.appendFileSync(path.join(process.cwd(), 'debug_github.log'), line)
-}
 
 // ── GitHub Contents API helper ─────────────────────────────────────────────
 
@@ -100,7 +93,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
-    debugLog(`--- START PUSH --- repo=${repoName} branch=${defaultBranch}`)
+    console.log(`Pushing GEO files to GitHub: ${repoName}`)
 
     // Detect whether a public/ folder exists in the repo
     let targetDir = ''
@@ -145,8 +138,6 @@ export async function POST(request: Request) {
       }),
     ])
 
-    debugLog(`upsert results: r1=${JSON.stringify(r1)} r2=${JSON.stringify(r2)}`)
-
     if (!r1.success || !r2.success) {
       const permissionStatuses = [401, 403, 404]
       const isPermissionIssue =
@@ -168,7 +159,7 @@ export async function POST(request: Request) {
       urls: { llmsTxt: r1.url, llmsFullTxt: r2.url },
     })
   } catch (error) {
-    debugLog(`CATCH: ${error instanceof Error ? error.message : String(error)}`)
+    console.error('Push to GitHub Error:', error)
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }
 }

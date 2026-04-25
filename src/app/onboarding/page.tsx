@@ -10,12 +10,14 @@ export default async function OnboardingPage() {
     redirect('/login')
   }
 
-  // Fetch user's existing projects if any
-  const { data: projects } = await supabase
+  // Fetch most recent project — limit(1) avoids .single() failing on duplicate rows
+  const { data: projectRows } = await supabase
     .from('projects')
     .select('*')
     .eq('user_id', user.id)
-    .single()
+    .order('created_at', { ascending: false })
+    .limit(1)
+  const projects = projectRows?.[0] ?? null
 
   let repos = []
   const { cookies } = await import('next/headers')

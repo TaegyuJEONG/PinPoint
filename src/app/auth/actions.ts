@@ -19,12 +19,13 @@ export async function login(formData: FormData) {
     redirect('/login?error=' + encodeURIComponent(error.message))
   }
 
-  // Check if they need onboarding
-  const { data: projects } = await supabase
+  // Check if they need onboarding — limit(1) handles multiple project rows gracefully
+  const { data: projectRows } = await supabase
     .from('projects')
     .select('id')
     .eq('user_id', sessionData.user.id)
-    .single()
+    .limit(1)
+  const projects = projectRows?.[0] ?? null
 
   revalidatePath('/', 'layout')
   

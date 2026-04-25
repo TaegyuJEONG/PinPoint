@@ -134,7 +134,7 @@ export default function OnboardingFlow({
 
         {step === 'loading' && (
           <div className="flex flex-col items-center justify-center h-full py-20 space-y-4">
-            <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+            <Loader2 className="h-8 w-8 animate-spin text-brand-600" />
             <h3 className="text-xl font-semibold">Analyzing Repository & Website...</h3>
             <p className="text-slate-500">
               Extracting context from your codebase and product website to generate an initial GEO baseline.
@@ -153,8 +153,8 @@ export default function OnboardingFlow({
         {step === 'generating' && (
           <div className="flex flex-col items-center justify-center h-full py-20 space-y-6">
             <div className="relative">
-              <Loader2 className="h-10 w-10 animate-spin text-indigo-600" />
-              <div className="absolute inset-0 h-10 w-10 bg-indigo-600/10 rounded-full blur-xl animate-pulse" />
+              <Loader2 className="h-10 w-10 animate-spin text-brand-600" />
+              <div className="absolute inset-0 h-10 w-10 bg-brand-600/10 rounded-full blur-xl animate-pulse" />
             </div>
             <div className="text-center space-y-2">
               <p className="text-lg font-semibold text-slate-900">Generating GEO Files...</p>
@@ -199,7 +199,7 @@ function StepIndicator({
     <div
       className={`flex-1 pb-4 border-b-2 transition-colors ${
         isActive
-          ? 'border-indigo-600 text-indigo-600'
+          ? 'border-brand-600 text-brand-600'
           : isPast
           ? 'border-slate-800 text-slate-800'
           : 'border-slate-200 text-slate-400'
