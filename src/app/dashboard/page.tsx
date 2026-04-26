@@ -1,9 +1,27 @@
 import { createClient } from '@/utils/supabase/server'
+import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { Target, Radio, MessageSquare, TrendingUp, Wifi, WifiOff } from 'lucide-react'
 import Link from 'next/link'
 import DashboardTabs from './components/dashboard-tabs'
 import SetupChecklist from './components/setup-checklist'
+import ScanButton from './components/scan-button'
+
+async function checkGeoFilesOnGitHub(ghToken: string, repoName: string): Promise<boolean> {
+  const headers = {
+    Authorization: `Bearer ${ghToken}`,
+    Accept: 'application/vnd.github.v3+json',
+  }
+  try {
+    const [rootRes, publicRes] = await Promise.all([
+      fetch(`https://api.github.com/repos/${repoName}/contents/llms.txt`, { headers }),
+      fetch(`https://api.github.com/repos/${repoName}/contents/public/llms.txt`, { headers }),
+    ])
+    return rootRes.ok || publicRes.ok
+  } catch {
+    return false
+  }
+}
 
 export const metadata = {
   title: 'Dashboard — PinPoint',
@@ -27,14 +45,16 @@ export default async function DashboardPage() {
   const project = projectRows?.[0] ?? null
   if (!project) redirect('/onboarding')
 
-  // Fetch GEO files (to know if geo is done)
-  const { data: geoFiles } = await supabase
-    .from('geo_files')
-    .select('id, created_at')
-    .eq('project_id', project.id)
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle()
+  // Check GEO files by looking for llms.txt in the actual GitHub repo
+  const cookieStore = await cookies()
+  const ghToken = cookieStore.get('gh_provider_token')?.value
+  const repoName = project.github_repo_url
+    ?.replace('https://github.com/', '')
+    .replace(/\/$/, '')
+
+  const geoFilesReady = ghToken && repoName
+    ? await checkGeoFilesOnGitHub(ghToken, repoName)
+    : false
 
   // Fetch Reddit account connection
   const { data: redditAccount } = await supabase
@@ -63,7 +83,6 @@ export default async function DashboardPage() {
   const postedCount = postedComments?.length ?? 0
   const convertedCount = postedComments?.filter(c => c.conversions?.length > 0).length ?? 0
 
-  const geoFilesReady = !!geoFiles
   const redditConnected = !!redditAccount
   const keywords: string[] = Array.isArray(project.keywords) ? project.keywords : []
 
@@ -86,7 +105,6 @@ export default async function DashboardPage() {
         </nav>
 
         <div className="ml-auto flex items-center gap-3">
-          {/* Reddit connection status */}
           {redditConnected ? (
             <div className="flex items-center gap-1.5 text-xs font-medium text-success-600 border border-success-200 bg-success-50 px-3 py-1.5 rounded-full">
               <Wifi className="h-3 w-3" />
@@ -104,63 +122,82 @@ export default async function DashboardPage() {
         </div>
       </header>
 
-      <main className="flex-1 w-full max-w-5xl mx-auto px-4 py-8 space-y-8">
-        {/* Project header */}
-        <div className="space-y-1">
-          <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">Project</p>
-          <h1 className="text-2xl font-bold text-slate-900">{project.name}</h1>
-          {project.github_repo_url && (
-            <a
-              href={project.github_repo_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm text-slate-500 hover:text-brand-600 transition-colors"
-            >
-              {project.github_repo_url}
-            </a>
-          )}
-        </div>
-
-        {/* Setup checklist — shown until Reddit is connected */}
-        {showSetup && (
+      {showSetup ? (
+        /* ── Setup page ─────────────────────────────────────────────────────── */
+        <main className="flex-1 w-full max-w-2xl mx-auto px-4 py-12 space-y-6">
+          <div className="space-y-1">
+            <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">Project</p>
+            <h1 className="text-2xl font-bold text-slate-900">{project.name}</h1>
+            {project.github_repo_url && (
+              <a
+                href={project.github_repo_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-slate-500 hover:text-brand-600 transition-colors"
+              >
+                {project.github_repo_url}
+              </a>
+            )}
+          </div>
           <SetupChecklist
             geoFilesReady={geoFilesReady}
             redditConnected={redditConnected}
             keywords={keywords}
             projectName={project.name}
           />
-        )}
+        </main>
+      ) : (
+        /* ── Main dashboard ─────────────────────────────────────────────────── */
+        <main className="flex-1 w-full max-w-5xl mx-auto px-4 py-8 space-y-8">
+          <div className="space-y-1">
+            <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">Project</p>
+            <h1 className="text-2xl font-bold text-slate-900">{project.name}</h1>
+            {project.github_repo_url && (
+              <a
+                href={project.github_repo_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-slate-500 hover:text-brand-600 transition-colors"
+              >
+                {project.github_repo_url}
+              </a>
+            )}
+          </div>
 
-        {/* Stats row */}
-        <div className="grid grid-cols-3 gap-4">
-          <StatCard
-            icon={<MessageSquare className="h-5 w-5 text-brand-500" />}
-            label="Awaiting Review"
-            value={pendingCount}
-            accent="brand"
-          />
-          <StatCard
-            icon={<Radio className="h-5 w-5 text-success-500" />}
-            label="Comments Posted"
-            value={postedCount}
-            accent="success"
-          />
-          <StatCard
-            icon={<TrendingUp className="h-5 w-5 text-caution-500" />}
-            label="Conversions Tracked"
-            value={convertedCount}
-            accent="caution"
-          />
-        </div>
+          <div className="grid grid-cols-3 gap-4">
+            <StatCard
+              icon={<MessageSquare className="h-5 w-5 text-brand-500" />}
+              label="Awaiting Review"
+              value={pendingCount}
+              accent="brand"
+            />
+            <StatCard
+              icon={<Radio className="h-5 w-5 text-success-500" />}
+              label="Comments Posted"
+              value={postedCount}
+              accent="success"
+            />
+            <StatCard
+              icon={<TrendingUp className="h-5 w-5 text-caution-500" />}
+              label="Conversions Tracked"
+              value={convertedCount}
+              accent="caution"
+            />
+          </div>
 
-        {/* Main tabs */}
-        <DashboardTabs
-          pendingComments={pendingComments ?? []}
-          postedComments={postedComments ?? []}
-          projectId={project.id}
-          redditConnected={redditConnected}
-        />
-      </main>
+          <div className="flex items-center justify-between">
+            <ScanButton projectId={project.id} />
+            <p className="text-xs text-slate-400">AI selects subreddits &amp; keywords · past week · ~30–60s</p>
+          </div>
+
+          <DashboardTabs
+            pendingComments={pendingComments ?? []}
+            postedComments={postedComments ?? []}
+            projectId={project.id}
+            redditConnected={redditConnected}
+          />
+        </main>
+      )}
     </div>
   )
 }
